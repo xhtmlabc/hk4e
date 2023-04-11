@@ -43,13 +43,13 @@ jobs:
     #     version: '2.14.2' # the full version of `docker-compose` command
     - name: build
       run: |
-        #make dev_tool
-        #make gen_natsrpc
-        #make gen_proto 
-        #make build
-        #make docker_config
-        #alias docker=echo
-        #make docker_build
+        make dev_tool
+        make gen_natsrpc
+        make gen_proto 
+        make build
+        make docker_config
+        alias docker=echo
+        make docker_build
         mv gdconf docker/gdconf
     - name: Zip Release
       # You may pin to the exact commit or the version.
