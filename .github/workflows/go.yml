@@ -1,0 +1,60 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+    - name: Setup Protocol Buffers compiler
+      # You may pin to the exact commit or the version.
+      # uses: Noelware/setup-protoc@e236f30099ef16b8052c33cabc3d8ea2061c4907
+      uses: Noelware/setup-protoc@1.0.2
+      #with:
+        # The version of the `protoc` compiler to use
+        #version: # optional, default is latest
+        # The token to use to avoid ratelimiting
+        #repo-token: # optional
+        # If the action should install pre-releases of the `protoc` compiler
+        #include-pre-releases: # optional, default is false
+    # - name: Docker Setup Docker
+    #   # You may pin to the exact commit or the version.
+    #   # uses: crazy-max/ghaction-setup-docker@92e1039e6dabc017c82129984e156d180d7a0ce3
+    #   uses: crazy-max/ghaction-setup-docker@v1.1.0
+    # - name: Setup docker-compose
+    #   # You may pin to the exact commit or the version.
+    #   # uses: KengoTODA/actions-setup-docker-compose@1d605d961123cbab67ef2d916746ba4d31413dcb
+    #   uses: KengoTODA/actions-setup-docker-compose@v1
+    #   with:
+    #     version: '2.14.2' # the full version of `docker-compose` command
+    - name: build
+      run: |
+        make dev_tool
+        make gen_natsrpc
+        make gen_proto 
+        make build
+        make docker_config
+        alias docker=echo
+        make docker_build
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        ## Artifact name
+        name: docker
+        # A file, directory or wildcard pattern that describes what to upload
+        path: docker
+        # The desired behavior if no files are found using the provided path.
