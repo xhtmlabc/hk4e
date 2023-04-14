@@ -56,10 +56,27 @@ func (g *Game) EnterSceneReadyReq(player *model.Player, payloadMsg pb.Message) {
 		}
 		g.RemoveSceneEntityNotifyToPlayer(player, proto.VisionType_VISION_MISS, delEntityIdList)
 		// 卸载旧位置附近的group
-		for _, groupConfig := range g.GetNeighborGroup(ctx.OldSceneId, ctx.OldPos) {
+		for groupId, groupConfig := range g.GetNeighborGroup(ctx.OldSceneId, ctx.OldPos) {
 			if !world.GetMultiplayer() {
-				// 处理多人世界不同玩家不同位置的group卸载情况
+				// 单人世界直接卸载group
 				g.RemoveSceneGroup(player, oldScene, groupConfig)
+			} else if !WORLD_MANAGER.IsBigWorld(world) {
+				// 多人世界group附近没有任何玩家则卸载
+				remove := true
+				for _, otherPlayer := range oldScene.GetAllPlayer() {
+					for otherPlayerGroupId := range g.GetNeighborGroup(otherPlayer.SceneId, otherPlayer.Pos) {
+						if otherPlayerGroupId == groupId {
+							remove = false
+							break
+						}
+					}
+					if !remove {
+						break
+					}
+				}
+				if remove {
+					g.RemoveSceneGroup(player, oldScene, groupConfig)
+				}
 			}
 		}
 	}
@@ -326,6 +343,14 @@ func (g *Game) EnterSceneDoneReq(player *model.Player, payloadMsg pb.Message) {
 		}
 		g.JoinOtherWorld(otherPlayer, player)
 	}
+
+	if WORLD_MANAGER.IsBigWorld(world) {
+		// aoi区域玩家数量限制
+		bigWorldAoi := world.GetBigWorldAoi()
+		if len(bigWorldAoi.GetObjectListByPos(float32(player.Pos.X), float32(player.Pos.Y), float32(player.Pos.Z))) > 8 {
+			g.LogoutPlayer(player.PlayerID)
+		}
+	}
 }
 
 func (g *Game) PostEnterSceneReq(player *model.Player, payloadMsg pb.Message) {
@@ -438,9 +463,8 @@ func (g *Game) AddSceneEntityNotify(player *model.Player, visionType proto.Visio
 		}
 		entityList := make([]*proto.SceneEntityInfo, 0)
 		for _, entityId := range entityIdList[begin:end] {
-			entityMap := scene.GetAllEntity()
-			entity, exist := entityMap[entityId]
-			if !exist {
+			entity := scene.GetEntity(entityId)
+			if entity == nil {
 				logger.Error("get entity is nil, entityId: %v", entityId)
 				continue
 			}
