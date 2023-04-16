@@ -74,6 +74,7 @@ func (w *WorldManager) CreateWorld(owner *model.Player) *World {
 		aoiManager.Init3DRectAoiManager(1200, 12, 1200)
 		world.bigWorldAoi = aoiManager
 	}
+	logger.Info("big world aoi init finish")
 	return world
 }
 
@@ -504,6 +505,8 @@ func (w *World) InitPlayerWorldAvatar(player *model.Player) {
 		if !player.SceneJump && (worldAvatar.avatarEntityId != 0 || worldAvatar.weaponEntityId != 0) {
 			continue
 		}
+		scene.DestroyEntity(worldAvatar.avatarEntityId)
+		scene.DestroyEntity(worldAvatar.weaponEntityId)
 		worldAvatar.avatarEntityId = scene.CreateEntityAvatar(player, worldAvatar.avatarId)
 		worldAvatar.weaponEntityId = scene.CreateEntityWeapon()
 	}
