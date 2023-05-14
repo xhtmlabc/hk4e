@@ -6,6 +6,7 @@ import (
 	"math"
 	"strconv"
 
+	"hk4e/common/config"
 	"hk4e/common/region"
 	"hk4e/dispatch/api"
 	"hk4e/pkg/endec"
@@ -24,7 +25,7 @@ type DispatchInfo struct {
 	DispatchKey []byte
 }
 
-func GetDispatchInfo(regionListUrl string, curRegionUrl string, regionListParam string, curRegionParam string, keyId string) (*DispatchInfo, error) {
+func GetDispatchInfo(regionListUrl string, regionListParam string, curRegionUrl string, curRegionParam string, keyId string) (*DispatchInfo, error) {
 	logger.Info("http get url: %v", regionListUrl+"/query_region_list"+regionListParam)
 	regionListBase64, err := httpclient.GetRaw(regionListUrl + "/query_region_list" + regionListParam)
 	if err != nil {
@@ -44,7 +45,7 @@ func GetDispatchInfo(regionListUrl string, curRegionUrl string, regionListParam 
 		return nil, errors.New("no region found")
 	}
 	if curRegionUrl == "" {
-		selectRegion := queryRegionListHttpRsp.RegionList[0]
+		selectRegion := queryRegionListHttpRsp.RegionList[int(config.GetConfig().Hk4eRobot.SelectRegionIndex)]
 		logger.Info("select region: %v", selectRegion)
 		curRegionUrl = selectRegion.DispatchUrl
 	}
@@ -115,14 +116,14 @@ type AccountInfo struct {
 	ComboToken string
 }
 
-func AccountLogin(url string, account string, password string) (*AccountInfo, error) {
+func AccountLogin(loginSdkUrl string, account string, password string) (*AccountInfo, error) {
 	loginAccountRequestJson := &api.LoginAccountRequestJson{
 		Account:  account,
 		Password: password,
 		IsCrypto: true,
 	}
-	logger.Info("http post url: %v", url+"/hk4e_global/mdk/shield/api/login")
-	loginResult, err := httpclient.PostJson[api.LoginResult](url+"/hk4e_global/mdk/shield/api/login", loginAccountRequestJson)
+	logger.Info("http post url: %v", loginSdkUrl+"/hk4e_global/mdk/shield/api/login")
+	loginResult, err := httpclient.PostJson[api.LoginResult](loginSdkUrl+"/hk4e_global/mdk/shield/api/login", loginAccountRequestJson)
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +148,8 @@ func AccountLogin(url string, account string, password string) (*AccountInfo, er
 		ChannelID: 1,
 		Data:      string(loginTokenDataJson),
 	}
-	logger.Info("http post url: %v", url+"/hk4e_global/combo/granter/login/v2/login")
-	comboTokenRsp, err := httpclient.PostJson[api.ComboTokenRsp](url+"/hk4e_global/combo/granter/login/v2/login", comboTokenReq)
+	logger.Info("http post url: %v", loginSdkUrl+"/hk4e_global/combo/granter/login/v2/login")
+	comboTokenRsp, err := httpclient.PostJson[api.ComboTokenRsp](loginSdkUrl+"/hk4e_global/combo/granter/login/v2/login", comboTokenReq)
 	if err != nil {
 		return nil, err
 	}

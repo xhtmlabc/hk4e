@@ -52,13 +52,18 @@ func GateLogin(dispatchInfo *DispatchInfo, accountInfo *AccountInfo, keyId strin
 		AccountUid:    strconv.Itoa(int(accountInfo.AccountId)),
 		KeyId:         uint32(keyIdInt),
 		ClientRandKey: clientSeedBase64,
+		AccountType:   1,
+		ChannelId:     1,
+		SubChannelId:  1,
+		PlatformType:  3,
 	})
 	protoMsg := <-session.RecvChan
 	if protoMsg.CmdId != cmd.GetPlayerTokenRsp {
 		return nil, errors.New("recv pkt is not GetPlayerTokenRsp")
 	}
-	// XOR密钥切换
 	getPlayerTokenRsp := protoMsg.PayloadMessage.(*proto.GetPlayerTokenRsp)
+	logger.Info("gate login ok, uid: %v", getPlayerTokenRsp.Uid)
+	// XOR密钥切换
 	seedEnc, err := base64.StdEncoding.DecodeString(getPlayerTokenRsp.ServerRandKey)
 	if err != nil {
 		logger.Error("base64 decode error: %v", err)
@@ -92,5 +97,7 @@ func GateLogin(dispatchInfo *DispatchInfo, accountInfo *AccountInfo, keyId strin
 	key := make([]byte, 4096)
 	copy(key, xorKey[:])
 	session.XorKey = key
+	session.ClientVersionRandomKey = getPlayerTokenRsp.ClientVersionRandomKey
+	session.SecurityCmdBuffer = getPlayerTokenRsp.SecurityCmdBuffer
 	return session, nil
 }
