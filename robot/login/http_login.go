@@ -98,14 +98,18 @@ func GetDispatchInfo(regionListUrl string, regionListParam string, curRegionUrl 
 	if regionInfo == nil {
 		return nil, errors.New("region info is nil")
 	}
-	ec2b, err := random.LoadEc2bKey(regionInfo.SecretKey)
-	if err != nil {
-		return nil, err
+	dispatchKey := make([]byte, 4096)
+	if config.GetConfig().Hk4eRobot.FirstPktEncEnable {
+		ec2b, err := random.LoadEc2bKey(regionInfo.SecretKey)
+		if err != nil {
+			return nil, err
+		}
+		dispatchKey = ec2b.XorKey()
 	}
 	dispatchInfo := &DispatchInfo{
 		GateIp:      regionInfo.GateserverIp,
 		GatePort:    regionInfo.GateserverPort,
-		DispatchKey: ec2b.XorKey(),
+		DispatchKey: dispatchKey,
 	}
 	return dispatchInfo, nil
 }
