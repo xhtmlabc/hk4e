@@ -36,6 +36,7 @@ func DecodeBinToPayload(data []byte, convId uint64, kcpMsgList *[]*KcpMsg, xorKe
 	// xor解密
 	endec.Xor(data, xorKey)
 	DecodeLoop(data, convId, kcpMsgList)
+	return
 }
 
 func DecodeLoop(data []byte, convId uint64, kcpMsgList *[]*KcpMsg) {

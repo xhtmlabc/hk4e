@@ -49,13 +49,16 @@ type ConnCtrlMsg struct {
 }
 
 const (
-	ServerAppidBindNotify             = iota // 玩家连接绑定的各个服务器appid通知
-	ServerUserOnlineStateChangeNotify        // 广播玩家上线和离线状态以及所在GS的appid
-	ServerUserGsChangeNotify                 // 跨服玩家迁移通知
-	ServerUserMpReq                          // 跨服多人世界相关请求
-	ServerUserMpRsp                          // 跨服多人世界相关响应
-	ServerChatMsgNotify                      // 跨服玩家聊天消息通知
-	ServerAddFriendNotify                    // 跨服添加好友通知
+	ServerAppidBindNotify              = iota // 玩家连接绑定的各个服务器appid通知
+	ServerUserOnlineStateChangeNotify         // 广播玩家上线和离线状态以及所在GS的appid
+	ServerUserGsChangeNotify                  // 跨服玩家迁移通知
+	ServerUserMpReq                           // 跨服多人世界相关请求
+	ServerUserMpRsp                           // 跨服多人世界相关响应
+	ServerChatMsgNotify                       // 跨服玩家聊天消息通知
+	ServerAddFriendNotify                     // 跨服添加好友通知
+	ServerForwardModeClientConnNotify         // 转发模式客户端连接通知
+	ServerForwardModeClientCloseNotify        // 转发模式客户端断开连接通知
+	ServerForwardModeServerCloseNotify        // 转发模式服务器断开连接通知
 )
 
 type ServerMsg struct {
